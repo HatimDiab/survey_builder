@@ -16,14 +16,19 @@ services:
     environment:
       DATABASE_URL: postgres://survey:survey@db:5432/survey
       SECRET_KEY: "CHANGE_ME"
-    volumes: [./backend:/app]
+    ports: ["8000:8000"]
     depends_on:
       db: {condition: service_healthy}
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
-    ports: ["3000:80"]
+    ports: ["3000:3000"]
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: production
     depends_on: [backend]
+    restart: unless-stopped
 
 volumes:
   pgdata:

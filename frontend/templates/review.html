@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Review & Export - Survey Builder{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Review Your Survey</h1>
+        <p class="text-gray-600">Preview and export your completed survey</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Survey Preview -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Survey Preview</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="togglePreviewMode()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 text-sm">
+                            <i class="fas fa-eye mr-2"></i>Preview Mode
+                        </button>
+                        <button onclick="toggleEditMode()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit Mode
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="surveyPreview" class="space-y-6">
+                    <!-- Survey header -->
+                    <div class="text-center border-b border-gray-200 pb-6">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-poll text-white text-2xl"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Customer Satisfaction Survey</h1>
+                        <p class="text-gray-600">Help us improve our services by sharing your feedback</p>
+                    </div>
+
+                    <!-- Sample questions -->
+                    <div class="space-y-6">
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium text-gray-500">Q1</span>
+                                <span class="text-red-500 text-xs">*</span>
+                            </div>
+                            <h3 class="text-lg font-medium mb-4">How satisfied are you with our product?</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="radio" name="q1" class="mr-3">
+                                    <label>Very Satisfied</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" name="q1" class="mr-3">
+                                    <label>Satisfied</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" name="q1" class="mr-3">
+                                    <label>Neutral</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" name="q1" class="mr-3">
+                                    <label>Dissatisfied</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" name="q1" class="mr-3">
+                                    <label>Very Dissatisfied</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium text-gray-500">Q2</span>
+                            </div>
+                            <h3 class="text-lg font-medium mb-4">What features would you like to see in future updates?</h3>
+                            <textarea placeholder="Please share your suggestions..." class="w-full px-4 py-3 border border-gray-300 rounded-lg h-24"></textarea>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium text-gray-500">Q3</span>
+                                <span class="text-red-500 text-xs">*</span>
+                            </div>
+                            <h3 class="text-lg font-medium mb-4">How likely are you to recommend our product to others?</h3>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm text-gray-500">1</span>
+                                <input type="range" min="1" max="10" class="flex-1">
+                                <span class="text-sm text-gray-500">10</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Not likely</span>
+                                <span>Very likely</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit button -->
+                    <div class="text-center pt-6">
+                        <button class="bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600">
+                            Submit Survey
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Panel -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Export Options</h2>
+                
+                <div class="space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-medium">Survey Statistics</h3>
+                            <span class="text-sm text-gray-500">3 questions</span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p>• Multiple choice: 1</p>
+                            <p>• Text input: 1</p>
+                            <p>• Scale: 1</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h3 class="font-medium text-gray-700">Export Format</h3>
+                        <div class="space-y-2">
+                            <button onclick="exportSurvey('pdf')" class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-pdf text-red-500"></i>
+                                    <div>
+                                        <div class="font-medium">PDF Document</div>
+                                        <div class="text-sm text-gray-500">Printable survey format</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="exportSurvey('html')" class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-code text-blue-500"></i>
+                                    <div>
+                                        <div class="font-medium">HTML Embed</div>
+                                        <div class="text-sm text-gray-500">Embed in your website</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="exportSurvey('json')" class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-code text-green-500"></i>
+                                    <div>
+                                        <div class="font-medium">JSON Data</div>
+                                        <div class="text-sm text-gray-500">Raw survey data</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="exportSurvey('csv')" class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-csv text-purple-500"></i>
+                                    <div>
+                                        <div class="font-medium">CSV Template</div>
+                                        <div class="text-sm text-gray-500">For data collection</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4">
+                        <h3 class="font-medium text-gray-700 mb-3">Survey Settings</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Anonymous responses</span>
+                                <input type="checkbox" checked class="rounded">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Allow multiple submissions</span>
+                                <input type="checkbox" class="rounded">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Show progress bar</span>
+                                <input type="checkbox" checked class="rounded">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Progress</h3>
+            <span class="text-sm text-gray-500">Step 4 of 4</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 100%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-sm text-gray-500">
+            <span>Branding</span>
+            <span>Categories</span>
+            <span>Questions</span>
+            <span>Review</span>
+        </div>
+    </div>
+
+    <div class="flex justify-between mt-8">
+        <a href="{{ url_for('question') }}" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Questions
+        </a>
+        <div class="space-x-3">
+            <button onclick="saveSurvey()" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600">
+                <i class="fas fa-save mr-2"></i>Save Survey
+            </button>
+            <button onclick="publishSurvey()" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600">
+                <i class="fas fa-paper-plane mr-2"></i>Publish Survey
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Export Survey</h3>
+        <div id="exportContent" class="mb-4">
+            <!-- Export content will be generated here -->
+        </div>
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeExportModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+            <button onclick="downloadExport()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                <i class="fas fa-download mr-2"></i>Download
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentExportFormat = null;
+    let exportData = null;
+
+    function togglePreviewMode() {
+        // Switch to preview mode (read-only)
+        showNotification('Preview mode activated');
+    }
+
+    function toggleEditMode() {
+        // Switch to edit mode
+        showNotification('Edit mode activated');
+    }
+
+    function exportSurvey(format) {
+        currentExportFormat = format;
+        
+        // Generate export content based on format
+        switch (format) {
+            case 'pdf':
+                exportData = generatePDFContent();
+                break;
+            case 'html':
+                exportData = generateHTMLContent();
+                break;
+            case 'json':
+                exportData = generateJSONContent();
+                break;
+            case 'csv':
+                exportData = generateCSVContent();
+                break;
+        }
+
+        showExportModal();
+    }
+
+    function generatePDFContent() {
+        return `
+            <div class="text-center mb-4">
+                <i class="fas fa-file-pdf text-red-500 text-3xl mb-2"></i>
+                <h4 class="font-semibold">PDF Export Ready</h4>
+                <p class="text-sm text-gray-600">Your survey will be exported as a printable PDF document</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded text-sm">
+                <p><strong>File size:</strong> ~2.5 MB</p>
+                <p><strong>Pages:</strong> 3-4 pages</p>
+                <p><strong>Format:</strong> A4, Portrait</p>
+            </div>
+        `;
+    }
+
+    function generateHTMLContent() {
+        return `
+            <div class="text-center mb-4">
+                <i class="fas fa-file-code text-blue-500 text-3xl mb-2"></i>
+                <h4 class="font-semibold">HTML Embed Code</h4>
+                <p class="text-sm text-gray-600">Copy this code to embed the survey in your website</p>
+            </div>
+            <div class="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>&lt;iframe src="https://survey.example.com/embed/123" 
+        width="100%" height="600" 
+        frameborder="0"&gt;&lt;/iframe&gt;</pre>
+            </div>
+        `;
+    }
+
+    function generateJSONContent() {
+        return `
+            <div class="text-center mb-4">
+                <i class="fas fa-file-code text-green-500 text-3xl mb-2"></i>
+                <h4 class="font-semibold">JSON Data Export</h4>
+                <p class="text-sm text-gray-600">Raw survey data in JSON format</p>
+            </div>
+            <div class="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto max-h-32 overflow-y-auto">
+                <pre>{
+  "survey": {
+    "title": "Customer Satisfaction Survey",
+    "questions": [
+      {
+        "id": 1,
+        "type": "multiple-choice",
+        "text": "How satisfied are you...",
+        "options": ["Very Satisfied", "Satisfied", ...]
+      }
+    ]
+  }
+}</pre>
+            </div>
+        `;
+    }
+
+    function generateCSVContent() {
+        return `
+            <div class="text-center mb-4">
+                <i class="fas fa-file-csv text-purple-500 text-3xl mb-2"></i>
+                <h4 class="font-semibold">CSV Template</h4>
+                <p class="text-sm text-gray-600">Template for collecting survey responses</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded text-sm">
+                <p><strong>Columns:</strong> Question ID, Response, Timestamp</p>
+                <p><strong>Rows:</strong> 1 header + response rows</p>
+                <p><strong>Encoding:</strong> UTF-8</p>
+            </div>
+        `;
+    }
+
+    function showExportModal() {
+        document.getElementById('exportContent').innerHTML = exportData;
+        document.getElementById('exportModal').classList.remove('hidden');
+        document.getElementById('exportModal').classList.add('flex');
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.add('hidden');
+        document.getElementById('exportModal').classList.remove('flex');
+        currentExportFormat = null;
+        exportData = null;
+    }
+
+    function downloadExport() {
+        // Simulate download
+        showNotification(`Survey exported as ${currentExportFormat.toUpperCase()} successfully`);
+        closeExportModal();
+    }
+
+    function saveSurvey() {
+        // Save survey to backend
+        makeApiCall('/api/save-progress', 'POST', {
+            survey: {
+                title: 'Customer Satisfaction Survey',
+                questions: [
+                    {
+                        id: 1,
+                        type: 'multiple-choice',
+                        text: 'How satisfied are you with our product?',
+                        required: true
+                    },
+                    {
+                        id: 2,
+                        type: 'textarea',
+                        text: 'What features would you like to see in future updates?',
+                        required: false
+                    },
+                    {
+                        id: 3,
+                        type: 'scale',
+                        text: 'How likely are you to recommend our product to others?',
+                        required: true,
+                        min: 1,
+                        max: 10
+                    }
+                ]
+            }
+        }).then(response => {
+            showNotification('Survey saved successfully');
+        }).catch(error => {
+            showNotification('Failed to save survey', 'error');
+        });
+    }
+
+    function publishSurvey() {
+        // Publish survey and get shareable link
+        showNotification('Survey published! Shareable link generated.');
+        
+        // Show share modal or redirect to published survey
+        setTimeout(() => {
+            window.open('https://survey.example.com/published/123', '_blank');
+        }, 1000);
+    }
+</script>
+{% endblock %} 
