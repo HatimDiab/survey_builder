@@ -1,4 +1,4 @@
-CREATE TABLE link_project_category (
+CREATE TABLE IF NOT EXISTS link_project_category (
     hk_project_category UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hk_project          UUID NOT NULL REFERENCES hub_project(hk_project),
     hk_category         UUID NOT NULL REFERENCES hub_category(hk_category),
@@ -7,7 +7,7 @@ CREATE TABLE link_project_category (
     UNIQUE (hk_project, hk_category)
 );
 
-CREATE TABLE link_project_question (
+CREATE TABLE IF NOT EXISTS link_project_question (
     hk_project_question UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hk_project          UUID NOT NULL REFERENCES hub_project(hk_project),
     hk_question         UUID NOT NULL REFERENCES hub_question(hk_question),

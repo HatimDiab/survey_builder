@@ -78,9 +78,9 @@
         <a href="{{ url_for('splash') }}" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
             <i class="fas fa-arrow-left mr-2"></i>Back
         </a>
-        <a href="{{ url_for('category') }}" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600">
-            Continue to Categories<i class="fas fa-arrow-right ml-2"></i>
-        </a>
+        <button onclick="saveCustomizationAndContinue()" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600">
+            Continue to Objectives<i class="fas fa-arrow-right ml-2"></i>
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -135,9 +135,108 @@
             reader.onload = function(e) {
                 const previewLogo = document.querySelector('#preview .w-16.h-16');
                 previewLogo.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain rounded-lg">`;
+                // Store logo URL in localStorage
+                localStorage.setItem('logo_url', e.target.result);
             };
             reader.readAsDataURL(file);
         }
     });
+
+    // Load saved data on page load
+    function loadSavedData() {
+        const savedCompanyName = localStorage.getItem('company_name');
+        const savedSurveyTitle = localStorage.getItem('survey_title');
+        const savedPrimaryColor = localStorage.getItem('primary_color');
+        const savedSecondaryColor = localStorage.getItem('secondary_color');
+        const savedLogoUrl = localStorage.getItem('logo_url');
+
+        if (savedCompanyName) {
+            document.getElementById('companyName').value = savedCompanyName;
+            document.getElementById('previewCompanyName').textContent = savedCompanyName;
+        }
+        if (savedSurveyTitle) {
+            document.getElementById('surveyTitle').value = savedSurveyTitle;
+            document.getElementById('previewSurveyTitle').textContent = savedSurveyTitle;
+        }
+        if (savedPrimaryColor) {
+            document.getElementById('primaryColor').value = savedPrimaryColor;
+            document.getElementById('primaryColorText').value = savedPrimaryColor;
+        }
+        if (savedSecondaryColor) {
+            document.getElementById('secondaryColor').value = savedSecondaryColor;
+            document.getElementById('secondaryColorText').value = savedSecondaryColor;
+        }
+        if (savedLogoUrl) {
+            const previewLogo = document.querySelector('#preview .w-16.h-16');
+            previewLogo.innerHTML = `<img src="${savedLogoUrl}" class="w-full h-full object-contain rounded-lg">`;
+        }
+        updatePreview();
+    }
+
+    // Save data to localStorage
+    function saveToLocalStorage() {
+        const companyName = document.getElementById('companyName').value;
+        const surveyTitle = document.getElementById('surveyTitle').value;
+        const primaryColor = document.getElementById('primaryColor').value;
+        const secondaryColor = document.getElementById('secondaryColor').value;
+
+        localStorage.setItem('company_name', companyName);
+        localStorage.setItem('survey_title', surveyTitle);
+        localStorage.setItem('primary_color', primaryColor);
+        localStorage.setItem('secondary_color', secondaryColor);
+    }
+
+    // Save customization and continue
+    async function saveCustomizationAndContinue() {
+        const companyName = document.getElementById('companyName').value.trim();
+        const surveyTitle = document.getElementById('surveyTitle').value.trim();
+        const primaryColor = document.getElementById('primaryColor').value;
+        const secondaryColor = document.getElementById('secondaryColor').value;
+        const logoUrl = localStorage.getItem('logo_url') || '';
+
+        if (!companyName || !surveyTitle) {
+            showNotification('Please enter both company name and survey title', 'error');
+            return;
+        }
+
+        try {
+            const requestData = {
+                company_name: companyName,
+                survey_title: surveyTitle,
+                customization: {
+                    company_name: companyName,
+                    logo_url: logoUrl,
+                    primary_color: primaryColor,
+                    secondary_color: secondaryColor
+                }
+            };
+
+            const response = await fetch('/api/save-customization', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Save to localStorage as well
+                saveToLocalStorage();
+                showNotification('Customization saved successfully');
+                // Continue to objectives page
+                window.location.href = '/objectives';
+            } else {
+                showNotification('Error saving customization: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error saving customization:', error);
+            showNotification('Error saving customization. Please try again.', 'error');
+        }
+    }
+
+    // Initialize
+    loadSavedData();
 </script>
 {% endblock %} 

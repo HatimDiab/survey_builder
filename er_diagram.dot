@@ -1,0 +1,59 @@
+digraph DataVaultModel {
+    // Graph settings
+    rankdir=TB;
+    node [shape=record, fontname="Arial", fontsize=10];
+    edge [fontname="Arial", fontsize=8];
+    
+    // Styling
+    graph [bgcolor=white, fontname="Arial", fontsize=12];
+    
+    // Hub tables (blue)
+    subgraph cluster_hubs {
+        label="Hubs";
+        style=filled;
+        color=lightblue;
+        
+        hub_project [label="{HubProject|+ hk_project (PK)\l+ bk_project\l+ load_dts\l+ rec_src\l}", fillcolor=lightblue, style=filled];
+        hub_client [label="{HubClient|+ hk_client (PK)\l+ bk_client\l+ load_dts\l+ rec_src\l}", fillcolor=lightblue, style=filled];
+        hub_objective [label="{HubObjective|+ hk_objective (PK)\l+ bk_objective\l+ load_dts\l+ rec_src\l}", fillcolor=lightblue, style=filled];
+        hub_question [label="{HubQuestion|+ hk_question (PK)\l+ bk_question\l+ load_dts\l+ rec_src\l}", fillcolor=lightblue, style=filled];
+    }
+    
+    // Link tables (green)
+    subgraph cluster_links {
+        label="Links";
+        style=filled;
+        color=lightgreen;
+        
+        link_project_objective [label="{LinkProjectObjective|+ hk_project_objective (PK)\l+ hk_project (FK)\l+ hk_objective (FK)\l+ load_dts\l+ rec_src\l}", fillcolor=lightgreen, style=filled];
+        link_project_question [label="{LinkProjectQuestion|+ hk_project_question (PK)\l+ hk_project (FK)\l+ hk_question (FK)\l+ load_dts\l+ rec_src\l}", fillcolor=lightgreen, style=filled];
+    }
+    
+    // Satellite tables (yellow)
+    subgraph cluster_satellites {
+        label="Satellites";
+        style=filled;
+        color=lightyellow;
+        
+        sat_project [label="{SatProject|+ hk_project (PK/FK)\l+ name\l+ duration_min\l+ created_at\l+ load_dts (PK)\l+ rec_src\l}", fillcolor=lightyellow, style=filled];
+        sat_client [label="{SatClient|+ hk_client (PK/FK)\l+ company_name\l+ logo_url\l+ primary_color\l+ secondary_color\l+ load_dts (PK)\l+ rec_src\l}", fillcolor=lightyellow, style=filled];
+        sat_objective [label="{SatObjective|+ hk_objective (PK/FK)\l+ label\l+ display_order\l+ load_dts (PK)\l+ rec_src\l}", fillcolor=lightyellow, style=filled];
+        sat_question [label="{SatQuestion|+ hk_question (PK/FK)\l+ text\l+ q_type\l+ est_seconds\l+ options\l+ load_dts (PK)\l+ rec_src\l}", fillcolor=lightyellow, style=filled];
+    }
+    
+    // Relationships
+    // Hub to Link relationships
+    hub_project -> link_project_objective [label="1:N", color=blue];
+    hub_objective -> link_project_objective [label="1:N", color=blue];
+    hub_project -> link_project_question [label="1:N", color=blue];
+    hub_question -> link_project_question [label="1:N", color=blue];
+    
+    // Hub to Satellite relationships
+    hub_project -> sat_project [label="1:N", color=red];
+    hub_client -> sat_client [label="1:N", color=red];
+    hub_objective -> sat_objective [label="1:N", color=red];
+    hub_question -> sat_question [label="1:N", color=red];
+    
+    // Implicit relationships (Client to Project through business logic)
+    hub_client -> hub_project [label="1:N\n(bk_client in bk_project)", color=gray, style=dashed];
+} 
