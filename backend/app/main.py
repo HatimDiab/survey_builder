@@ -1,7 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Survey Builder API", version="1.0.0")
+from .api.survey import router as survey_router
+from .db.connection import engine
+from .db.models import Base
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create database tables
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown: Clean up resources if needed
+    pass
+
+app = FastAPI(
+    title="Survey Builder API", 
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -12,6 +29,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include API routers
+app.include_router(survey_router)
+
 @app.get("/")
 async def root():
     return {"message": "Survey Builder API is running"}
@@ -19,13 +39,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
-@app.post("/api/save-progress")
-async def save_progress(data: dict):
-    # TODO: Implement save logic
-    return {"status": "success", "message": "Progress saved"}
-
-@app.post("/api/export")
-async def export_survey(data: dict):
-    # TODO: Implement export logic
-    return {"status": "success", "message": "Survey exported successfully"}

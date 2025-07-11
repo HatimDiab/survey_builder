@@ -4,22 +4,29 @@ services:
     environment:
       POSTGRES_USER: survey
       POSTGRES_PASSWORD: survey
-      POSTGRES_DB: survey
+      POSTGRES_DB: survey_builder
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "survey"]
+      test: ["CMD", "pg_isready", "-U", "survey", "-d", "survey_builder"]
       interval: 10s
       retries: 5
 
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgres://survey:survey@db:5432/survey
+      DATABASE_URL: postgresql://survey:survey@db:5432/survey_builder
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: survey_builder
+      DB_USER: survey
+      DB_PASSWORD: survey
       SECRET_KEY: "CHANGE_ME"
     ports: ["8000:8000"]
     depends_on:
       db: {condition: service_healthy}
     restart: unless-stopped
+    command: >
+      sh -c "python scripts/run_migrations.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
   frontend:
     build: ./frontend

@@ -11,3 +11,14 @@ wheels/
 .venv
 .envrc
 
+# Generated files
+*.png
+*.pdf
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+*.webp
+

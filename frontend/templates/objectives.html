@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Objectives - Survey Builder{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Organize Your Survey</h1>
+        <p class="text-gray-600">Create objectives to group related questions together</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Objectives List -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Survey Objectives</h2>
+                    <button onclick="addObjective()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                        <i class="fas fa-plus mr-2"></i>Add Objective
+                    </button>
+                </div>
+                
+                <div id="objectivesList" class="space-y-3">
+                    <!-- Objectives will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Survey Preview</h2>
+                <div id="surveyPreview" class="space-y-4">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-list text-3xl mb-2"></i>
+                        <p>No objectives yet</p>
+                        <p class="text-sm">Add objectives to see preview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Progress</h3>
+            <span class="text-sm text-gray-500">Step 2 of 4</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 50%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-sm text-gray-500">
+            <span>Branding</span>
+            <span>Objectives</span>
+            <span>Questions</span>
+            <span>Review</span>
+        </div>
+    </div>
+
+    <div class="flex justify-between mt-8">
+        <a href="{{ url_for('white_label') }}" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+            <i class="fas fa-arrow-left mr-2"></i>Back
+        </a>
+        <button onclick="saveObjectivesAndContinue()" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600">
+            Continue to Questions<i class="fas fa-arrow-right ml-2"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Add Objective Modal -->
+<div id="objectiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Add New Objective</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Objective Name</label>
+                <input type="text" id="objectiveName" placeholder="e.g., Demographics, Preferences" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <textarea id="objectiveDescription" placeholder="Brief description of this objective" class="w-full px-3 py-2 border border-gray-300 rounded-md h-20"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <input type="color" id="objectiveColor" value="#667eea" class="w-full h-10 rounded border-2 border-gray-300">
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button onclick="closeObjectiveModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            <button onclick="saveObjective()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Save Objective</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let objectives = [];
+    let objectiveCounter = 0;
+    let isEditing = false;
+    let editingId = null;
+
+    // Load objectives from localStorage or backend
+    function loadObjectives() {
+        const savedObjectives = localStorage.getItem('survey_objectives');
+        if (savedObjectives) {
+            objectives = JSON.parse(savedObjectives);
+            objectiveCounter = objectives.length > 0 ? Math.max(...objectives.map(obj => obj.id)) : 0;
+        }
+        renderObjectives();
+        updatePreview();
+    }
+
+    function addObjective() {
+        isEditing = false;
+        editingId = null;
+        document.getElementById('objectiveModal').classList.remove('hidden');
+        document.getElementById('objectiveModal').classList.add('flex');
+        // Clear form
+        document.getElementById('objectiveName').value = '';
+        document.getElementById('objectiveDescription').value = '';
+        document.getElementById('objectiveColor').value = '#667eea';
+    }
+
+    function closeObjectiveModal() {
+        document.getElementById('objectiveModal').classList.add('hidden');
+        document.getElementById('objectiveModal').classList.remove('flex');
+    }
+
+    function saveObjective() {
+        const name = document.getElementById('objectiveName').value.trim();
+        const description = document.getElementById('objectiveDescription').value.trim();
+        const color = document.getElementById('objectiveColor').value;
+
+        if (!name) {
+            showNotification('Please enter an objective name', 'error');
+            return;
+        }
+
+        if (isEditing && editingId !== null) {
+            // Update existing objective
+            const index = objectives.findIndex(obj => obj.id === editingId);
+            if (index !== -1) {
+                objectives[index] = {
+                    ...objectives[index],
+                    name: name,
+                    description: description,
+                    color: color
+                };
+            }
+            showNotification('Objective updated successfully');
+        } else {
+            // Add new objective
+            const objective = {
+                id: ++objectiveCounter,
+                name: name,
+                description: description,
+                color: color,
+                questionCount: 0,
+                display_order: objectives.length
+            };
+            objectives.push(objective);
+            showNotification('Objective added successfully');
+        }
+
+        // Save to localStorage
+        localStorage.setItem('survey_objectives', JSON.stringify(objectives));
+        
+        renderObjectives();
+        updatePreview();
+        closeObjectiveModal();
+    }
+
+    function deleteObjective(id) {
+        objectives = objectives.filter(obj => obj.id !== id);
+        // Update display_order for remaining objectives
+        objectives.forEach((obj, index) => {
+            obj.display_order = index;
+        });
+        localStorage.setItem('survey_objectives', JSON.stringify(objectives));
+        renderObjectives();
+        updatePreview();
+        showNotification('Objective deleted');
+    }
+
+    function editObjective(id) {
+        const objective = objectives.find(obj => obj.id === id);
+        if (!objective) return;
+
+        isEditing = true;
+        editingId = id;
+
+        // Populate modal with existing data
+        document.getElementById('objectiveName').value = objective.name;
+        document.getElementById('objectiveDescription').value = objective.description || '';
+        document.getElementById('objectiveColor').value = objective.color;
+
+        // Show modal
+        document.getElementById('objectiveModal').classList.remove('hidden');
+        document.getElementById('objectiveModal').classList.add('flex');
+    }
+
+    function renderObjectives() {
+        const objectivesList = document.getElementById('objectivesList');
+        
+        if (objectives.length === 0) {
+            objectivesList.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-folder-open text-3xl mb-2"></i>
+                    <p>No objectives yet</p>
+                    <p class="text-sm">Click "Add Objective" to get started</p>
+                </div>
+            `;
+            return;
+        }
+
+        objectivesList.innerHTML = objectives.map((objective, index) => `
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" 
+                 data-objective-id="${objective.id}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 rounded-full" style="background-color: ${objective.color}"></div>
+                        <div>
+                            <h3 class="font-semibold">${objective.name}</h3>
+                            ${objective.description ? `<p class="text-sm text-gray-600">${objective.description}</p>` : ''}
+                            <p class="text-xs text-gray-500">${objective.questionCount} questions</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editObjective(${objective.id})" class="text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteObjective(${objective.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <div class="cursor-move text-gray-400">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updatePreview() {
+        const preview = document.getElementById('surveyPreview');
+        
+        if (objectives.length === 0) {
+            preview.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-list text-3xl mb-2"></i>
+                    <p>No objectives yet</p>
+                    <p class="text-sm">Add objectives to see preview</p>
+                </div>
+            `;
+            return;
+        }
+
+        preview.innerHTML = objectives.map(objective => `
+            <div class="border-l-4 p-3" style="border-left-color: ${objective.color}">
+                <h4 class="font-semibold text-sm">${objective.name}</h4>
+                <p class="text-xs text-gray-500">${objective.questionCount} questions</p>
+            </div>
+        `).join('');
+    }
+
+    async function saveObjectivesAndContinue() {
+        if (objectives.length === 0) {
+            showNotification('Please add at least one objective', 'error');
+            return;
+        }
+
+        try {
+            // Get company name and survey title from localStorage
+            const companyName = localStorage.getItem('company_name') || 'Default Company';
+            const surveyTitle = localStorage.getItem('survey_title') || 'Default Survey';
+
+            // Prepare objectives data for Data Vault backend
+            const objectivesData = objectives.map((obj, index) => ({
+                label: obj.name,
+                display_order: index
+            }));
+
+            const requestData = {
+                company_name: companyName,
+                survey_title: surveyTitle,
+                objectives: objectivesData
+            };
+
+            // Save to backend
+            const response = await fetch('/api/save-objectives', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showNotification('Objectives saved successfully');
+                // Continue to questions page
+                window.location.href = '/question';
+            } else {
+                showNotification('Error saving objectives: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error saving objectives:', error);
+            showNotification('Error saving objectives. Please try again.', 'error');
+        }
+    }
+
+    // Initialize
+    loadObjectives();
+</script>
+{% endblock %} 
